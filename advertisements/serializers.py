@@ -24,6 +24,7 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         model = Advertisement
         fields = ('id', 'title', 'description', 'creator',
                   'status', 'created_at', )
+        read_only_fields = ['creator']
 
     def create(self, validated_data):
         """Метод для создания"""
@@ -41,5 +42,9 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         """Метод для валидации. Вызывается при создании и обновлении."""
 
         # TODO: добавьте требуемую валидацию
+
+        if Advertisement.objects.filter(creator=self.context["request"].user).filter(
+                status='OPEN').count() > 10 and data.get('status') != 'CLOSED':
+            raise serializers.ValidationError('Too many posts. Close one before create')
 
         return data
